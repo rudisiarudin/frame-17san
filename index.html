@@ -1,253 +1,393 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Bingkai Foto Acara – Tema Gesit 80</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
-    :root{
-      --merah:#E11D48; /* rose-600 */
-      --merah-tua:#B91C1C; /* red-700 */
-      --hitam:#111827; /* gray-900 */
-      --abu:#6B7280; /* gray-500 */
-    }
-    body{ font-family:'Inter',sans-serif; background:linear-gradient(180deg,#f7f8fb 0%,#eef1f5 100%); color:#111827; }
-    .headline{ font-family:'Montserrat',ui-sans-serif; letter-spacing:.02em; }
-    /* pita merah putih ala poster */
-    .hero-bg{ position:relative; overflow:hidden; border-radius:1.25rem; }
-    .hero-bg:before, .hero-bg:after{ content:""; position:absolute; width:120vw; height:120vw; border-radius:50%; pointer-events:none; filter:drop-shadow(0 10px 20px rgba(0,0,0,.12)); }
-    .hero-bg:before{ top:-65vw; right:-55vw; background:
-      radial-gradient(circle at 60% 60%, #fff 0 34%, transparent 35%),
-      radial-gradient(circle at 40% 40%, var(--merah) 0 44%, transparent 45%),
-      radial-gradient(circle at 50% 50%, var(--merah-tua) 0 52%, transparent 53%);
-      transform:rotate(-12deg);
-      opacity:.95;
-    }
-    .hero-bg:after{ bottom:-75vw; left:-60vw; background:
-      radial-gradient(circle at 60% 60%, #fff 0 34%, transparent 35%),
-      radial-gradient(circle at 40% 40%, var(--merah) 0 44%, transparent 45%),
-      radial-gradient(circle at 50% 50%, var(--merah-tua) 0 52%, transparent 53%);
-      transform:rotate(18deg);
-      opacity:.95;
-    }
-    .canvas-wrap{ position:relative; background:radial-gradient(circle at 50% 30%, rgba(0,0,0,.04), transparent 60%); border:1px solid #e5e7eb; border-radius:1rem; overflow:hidden; }
-    #ratioKeeper{ width:100%; }
-    canvas, video{ position:absolute; inset:0; width:100%; height:100%; border-radius:1rem; object-fit:cover; touch-action:none; }
-    .segmented button{ padding:.4rem .9rem; border-radius:999px; font-weight:600; }
-    .segmented .active{ background:var(--merah); color:#fff; box-shadow:0 4px 10px rgba(225,29,72,.25); }
-    .icon-btn{ display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:999px; box-shadow:0 6px 20px rgba(0,0,0,.12); transition:transform .12s ease; }
-    .icon-btn:active{ transform:scale(.97); }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Twibbon Maker — Vanilla HTML</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji"; color: #111; background: #fafafa; }
+  .container { max-width: 1120px; margin: 0 auto; padding: 16px 24px; }
+  h1 { margin: 0 0 6px; font-size: 24px; }
+  p.sub { margin: 0; color: #555; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 1024px) { .grid { grid-template-columns: 2fr 1fr; } }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .pad { padding: 16px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row.wrap { flex-wrap: wrap; }
+  .spacer { flex: 1 1 auto; }
+  .btn { appearance: none; border: 1px solid #e5e5e5; background: #fff; padding: 8px 12px; border-radius: 12px; font-size: 13px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); display: inline-flex; gap: 6px; align-items: center; }
+  .btn:hover { box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+  .btn[disabled] { opacity: .5; cursor: default; }
+  .btn.primary { background: #111; color: #fff; border-color: #111; }
+  .select { padding: 8px 10px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fff; font-size: 13px; }
+  .small { font-size: 12px; color: #666; }
+  .wrap { position: relative; width: 100%; border-radius: 16px; overflow: hidden; }
+  #wrap { aspect-ratio: 1 / 1; background: #fff; }
+  #preview { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #preview:active { cursor: grabbing; }
+  .hud { position: absolute; left: 12px; top: 12px; display: flex; gap: 8px; }
+  .chip { background: rgba(255,255,255,.85); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border: 1px solid #e5e5e5; padding: 4px 8px; border-radius: 10px; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .hud2 { position: absolute; right: 12px; top: 12px; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .thumb { position: relative; aspect-ratio: 1 / 1; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; padding: 0; background: #fff; }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .thumb.active { outline: 2px solid #111; }
+  .mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; }
+  .col { display: grid; gap: 12px; }
+  .info ul { margin: 8px 0 0; padding: 0 0 0 18px; }
+  .info li { margin: 4px 0; font-size: 13px; color: #333; }
+  svg { width: 16px; height: 16px; }
+</style>
 </head>
-<body class="min-h-screen">
-  <header class="max-w-screen-xl mx-auto px-4 py-5 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="h-10 w-10 rounded-xl" style="background:conic-gradient(from 0deg at 50% 50%, #fff 0 25%, var(--merah) 0 50%, #fff 0 75%, var(--merah) 0 100%);"></div>
+<body>
+  <div class="container">
+    <header class="row" style="justify-content: space-between; margin-bottom: 12px;">
       <div>
-        <div class="headline text-2xl font-extrabold text-[var(--hitam)]">DIRGAHAYU INDONESIA 80</div>
-        <div class="text-xs text-gray-600">“BERSATU KITA GESIT” · The Gesit Companies</div>
+        <h1>Twibbon Maker — Vanilla HTML</h1>
+        <p class="sub">Upload frame PNG transparan + foto, atur posisi, lalu unduh PNG akhir. Semua proses di browser (tanpa framework).</p>
       </div>
-    </div>
-    <div class="hidden sm:flex items-center gap-2 text-sm text-gray-500">
-      <i class="fa-regular fa-circle-question"></i>
-      <span id="howto">Pinch untuk zoom · Geser untuk pan · Double tap reset</span>
-    </div>
-  </header>
+      <div class="row" style="display:none" id="headerBtns"></div>
+    </header>
 
-  <main class="max-w-screen-xl mx-auto px-4 pb-24">
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-      <section class="lg:col-span-3">
-        <div class="hero-bg p-3 sm:p-5 bg-white/60">
-          <div class="flex items-center justify-between mb-3 relative z-10">
-            <div class="segmented bg-white/80 border border-gray-200 rounded-full p-1">
-              <button id="size-portrait" class="active">Potret</button>
-              <button id="size-landscape" class="text-gray-700">Lanskap</button>
-              <button id="size-square" class="text-gray-700">Persegi</button>
-            </div>
-            <div class="hidden sm:flex items-center gap-2">
-              <button id="zoomMinus" class="icon-btn bg-white" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus text-gray-800"></i></button>
-              <input type="range" id="zoomSlider" min="1" max="3" value="1" step="0.01" class="w-40" />
-              <button id="zoomPlus" class="icon-btn bg-white" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus text-gray-800"></i></button>
-            </div>
+    <div class="grid">
+      <section class="card pad">
+        <div id="wrap" class="wrap">
+          <canvas id="preview"></canvas>
+          <div class="hud" id="hudLeft">
+            <span class="chip" id="designChip">1080×1080 design</span>
+            <span class="chip" id="zoomChip" style="display:none">Zoom 100%</span>
           </div>
-
-          <div class="canvas-wrap">
-            <div id="ratioKeeper"></div>
-            <canvas id="photoCanvas"></canvas>
-            <video id="cameraPreview" class="hidden" autoplay playsinline></video>
-            <div id="messageBox" class="absolute inset-0 flex flex-col items-center justify-center text-gray-800 p-4 text-center text-sm transition-opacity duration-300 opacity-100">
-              <i class="fas fa-image text-4xl mb-2 opacity-80"></i>
-              <span>Unggah foto Anda atau gunakan kamera</span>
-            </div>
-            <div class="hidden sm:flex absolute bottom-3 right-3 gap-2 z-10">
-              <label for="imageUpload" class="icon-btn" style="background:var(--merah)"><i class="fa-solid fa-upload text-white"></i></label>
-              <button id="cameraBtn" class="icon-btn" style="background:var(--merah-tua)"><i class="fa-solid fa-camera text-white"></i></button>
-              <label for="frameUpload" class="icon-btn bg-gray-900"><i class="fa-regular fa-images text-white"></i></label>
-              <button id="downloadBtn" disabled class="icon-btn bg-gray-300 disabled:opacity-50"><i class="fa-solid fa-download text-gray-700"></i></button>
-            </div>
+          <div class="hud2">
+            <button class="btn small" id="gridBtn">Grid</button>
           </div>
-
-          <div id="zoomControls" class="sm:hidden mt-3 flex items-center gap-2 relative z-10">
-            <i class="fa-solid fa-magnifying-glass-minus text-gray-600"></i>
-            <input type="range" id="zoomSlider_m" min="1" max="3" value="1" step="0.01" class="flex-1" />
-            <i class="fa-solid fa-magnifying-glass-plus text-gray-600"></i>
-          </div>
+        </div>
+        <div class="row wrap mt12">
+          <button class="btn" id="zoomInBtn">"+iconPlus()+" Zoom in</button>
+          <button class="btn" id="zoomOutBtn">"+iconMinus()+" Zoom out</button>
+          <button class="btn" id="centerBtn">"+iconCrosshair()+" Center</button>
+          <div class="spacer"></div>
+          <label class="small" for="exportSize">Export:</label>
+          <select id="exportSize" class="select">
+            <option value="720">720 px</option>
+            <option value="1080" selected>1080 px</option>
+            <option value="1440">1440 px</option>
+            <option value="2048">2048 px</option>
+            <option value="3000">3000 px</option>
+          </select>
+          <button class="btn primary" id="downloadBtn">"+iconDownload()+" Download PNG</button>
+        </div>
+        <div class="row wrap mt8">
+          <button class="btn" id="fitBtn">"+iconFit()+" Fit</button>
+          <button class="btn" id="resetBtn">"+iconReset()+" Reset</button>
         </div>
       </section>
 
-      <aside class="lg:col-span-2">
-        <div class="bg-white/80 rounded-2xl p-5 border border-gray-200">
-          <h2 class="headline text-xl text-[var(--hitam)] mb-3">Detail Acara</h2>
-          <div class="grid grid-cols-1 gap-3">
-            <div>
-              <label class="text-xs text-gray-500">Judul (opsional)</label>
-              <input id="titleText" type="text" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400" placeholder="Nama Acara" />
-            </div>
-            <div>
-              <label class="text-xs text-gray-500">Tanggal (opsional)</label>
-              <input id="dateText" type="text" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400" placeholder="16 Agustus 2025" />
-            </div>
-            <div>
-              <label class="text-xs text-gray-500">Status Bingkai</label>
-              <div id="frameName" class="mt-1 text-sm text-gray-700">Belum ada bingkai terpasang</div>
-            </div>
+      <aside class="col">
+        <section class="card pad">
+          <h3 style="margin:0 0 10px;">Upload</h3>
+          <div class="col">
+            <label>
+              <div class="small">Frame PNG (bisa multi file)</div>
+              <input type="file" accept="image/png" id="frameInput" multiple />
+            </label>
+            <label>
+              <div class="small">Foto</div>
+              <input type="file" accept="image/*" id="photoInput" />
+            </label>
           </div>
+        </section>
 
-          <div class="mt-5 hidden sm:flex gap-2">
-            <label for="imageUpload" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white" style="background:var(--merah)"><i class="fa-solid fa-upload"></i> Unggah Foto</label>
-            <button id="cameraBtn2" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white" style="background:var(--merah-tua)"><i class="fa-solid fa-camera"></i> Kamera</button>
-            <label for="frameUpload" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white"><i class="fa-regular fa-images"></i> Bingkai</label>
+        <section class="card pad">
+          <h3 style="margin:0 0 10px;">Frame</h3>
+          <div id="thumbs" class="thumbs"></div>
+          <div class="row mt12">
+            <button class="btn" id="removeFrameBtn">"+iconTrash()+" Hapus terpilih</button>
+            <button class="btn" id="fitPhotoBtn">Fit foto ke kanvas</button>
           </div>
+        </section>
 
-          <div class="mt-3 flex justify-center">
-            <button id="downloadBtn_big" disabled class="px-5 py-2 rounded-xl bg-gray-300 text-gray-700 disabled:opacity-50"><i class="fa-solid fa-download mr-2"></i>Unduh PNG</button>
-          </div>
-        </div>
+        <section class="card pad info">
+          <h3 style="margin:0 0 10px;">Info</h3>
+          <ul>
+            <li>Gunakan PNG frame dengan transparansi agar foto terlihat di belakang frame.</li>
+            <li>Zoom dengan scroll/pinch. Drag di kanvas untuk geser.</li>
+            <li>Hasil download dalam PNG (background transparan) dengan resolusi sesuai pilihan.</li>
+          </ul>
+        </section>
       </aside>
-    </div>
-  </main>
-
-  <div class="sm:hidden fixed bottom-3 left-0 right-0 z-50">
-    <div class="max-w-screen-xl mx-auto px-3">
-      <div class="bg-white/90 rounded-2xl p-3 border border-gray-200 shadow-xl flex items-center justify-between">
-        <label for="imageUpload" class="icon-btn" style="background:var(--merah)"><i class="fa-solid fa-upload text-white"></i></label>
-        <button id="cameraBtn_m" class="icon-btn" style="background:var(--merah-tua)"><i class="fa-solid fa-camera text-white"></i></button>
-        <label for="frameUpload" class="icon-btn bg-gray-900"><i class="fa-regular fa-images text-white"></i></label>
-        <button id="downloadBtn_m" disabled class="icon-btn bg-gray-300 disabled:opacity-50"><i class="fa-solid fa-download text-gray-700"></i></button>
-      </div>
     </div>
   </div>
 
-  <input type="file" id="imageUpload" accept="image/*" class="hidden" />
-  <input type="file" id="frameUpload" accept="image/png" class="hidden" />
+<script>
+(function(){
+  const state = {
+    designW: 1080,
+    designH: 1080,
+    photo: null, // {img,w,h,src,name}
+    frames: [], // [{img,w,h,src,name}]
+    activeFrameIdx: -1,
+    offset: {x:0, y:0},
+    zoom: 1,
+    exportSize: 1080,
+    showGrid: false,
+  };
 
-  <script>
-    const imageUpload=document.getElementById('imageUpload');
-    const frameUpload=document.getElementById('frameUpload');
-    const cameraBtn=document.getElementById('cameraBtn');
-    const cameraBtn2=document.getElementById('cameraBtn2');
-    const cameraBtn_m=document.getElementById('cameraBtn_m');
-    const cameraPreview=document.getElementById('cameraPreview');
-    const photoCanvas=document.getElementById('photoCanvas');
-    const downloadBtn=document.getElementById('downloadBtn');
-    const downloadBtn_m=document.getElementById('downloadBtn_m');
-    const downloadBtn_big=document.getElementById('downloadBtn_big');
-    const messageBox=document.getElementById('messageBox');
-    const ratioKeeper=document.getElementById('ratioKeeper');
-    const zoomSliderDesktop=document.getElementById('zoomSlider');
-    const zoomMinus=document.getElementById('zoomMinus');
-    const zoomPlus=document.getElementById('zoomPlus');
-    const zoomSliderMobile=document.getElementById('zoomSlider_m');
-    const zoomControls=document.getElementById('zoomControls');
-    const titleText=document.getElementById('titleText');
-    const dateText=document.getElementById('dateText');
-    const frameName=document.getElementById('frameName');
+  // Elements
+  const wrap = document.getElementById('wrap');
+  const canvas = document.getElementById('preview');
+  const ctx = canvas.getContext('2d');
+  const designChip = document.getElementById('designChip');
+  const zoomChip = document.getElementById('zoomChip');
+  const gridBtn = document.getElementById('gridBtn');
+  const thumbsEl = document.getElementById('thumbs');
+  const frameInput = document.getElementById('frameInput');
+  const photoInput = document.getElementById('photoInput');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const centerBtn = document.getElementById('centerBtn');
+  const fitBtn = document.getElementById('fitBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const exportSizeSel = document.getElementById('exportSize');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const removeFrameBtn = document.getElementById('removeFrameBtn');
+  const fitPhotoBtn = document.getElementById('fitPhotoBtn');
 
-    const sizePortrait=document.getElementById('size-portrait');
-    const sizeLandscape=document.getElementById('size-landscape');
-    const sizeSquare=document.getElementById('size-square');
+  // Utility
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  const coverScale = (pw,ph,dw,dh)=>Math.max(dw/pw, dh/ph);
+  const computeExportHeight = (dw,dh,w)=>Math.round((dh/dw)*w);
 
-    const ctx=photoCanvas.getContext('2d');
+  function drawChecker(g, w, h, size=16){
+    g.save();
+    const s = size;
+    g.fillStyle = '#f5f5f5'; g.fillRect(0,0,w,h);
+    g.fillStyle = '#e5e5e5';
+    for (let y=0;y<h;y+=s){
+      for (let x=0;x<w;x+=s){ if (((x+y)/s)%2<1) g.fillRect(x,y,s,s); }
+    }
+    g.restore();
+  }
+  function drawGrid(g,W,H){
+    g.save();
+    g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=1;
+    const thirds=[W/3,2*W/3];
+    thirds.forEach(x=>{g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();});
+    thirds.forEach(y=>{g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();});
+    g.strokeStyle='rgba(0,0,0,.12)'; g.setLineDash([6,6]); g.strokeRect(16,16,W-32,H-32);
+    g.restore();
+  }
 
-    const SIZES={portrait:{w:1080,h:1920}, landscape:{w:1920,h:1080}, square:{w:1500,h:1500}};
-    let currentSizeKey='portrait', currentSize=SIZES[currentSizeKey];
+  // Derived
+  function baseCover(){
+    if(!state.photo) return 1;
+    return coverScale(state.photo.w, state.photo.h, state.designW, state.designH);
+  }
 
-    let currentImage=null; let cameraStream=null; let cameraPreviewReady=false; let cameraCapturedOnce=false;
-    let customFrame=null; let isDragging=false,startX=0,startY=0,offsetX=0,offsetY=0,scale=1,lastPinchDistance=null;
+  // Resize logic
+  function resizeCanvas(){
+    wrap.style.aspectRatio = `${state.designW} / ${state.designH}`;
+    const dpr = Math.min(window.devicePixelRatio||1,2);
+    const width = wrap.clientWidth;
+    const height = Math.max(320, Math.round(width * (state.designH / state.designW)));
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    draw();
+  }
 
-    function setSegmentedActive(){ [sizePortrait,sizeLandscape,sizeSquare].forEach(b=>b.classList.remove('active')); document.getElementById('size-'+currentSizeKey).classList.add('active'); }
-    function setAspectRatio(){ const ar=currentSize.h/currentSize.w; ratioKeeper.style.paddingTop=(ar*100)+'%'; layoutCanvasPixels(); }
-    function layoutCanvasPixels(){ photoCanvas.width=currentSize.w; photoCanvas.height=currentSize.h; redrawCanvas(); }
-    function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
-    function sourceLoaded(){ return !!(currentImage||cameraCapturedOnce); }
+  const ro = new ResizeObserver(resizeCanvas); ro.observe(wrap);
 
-    function redrawCanvas(){
-      ctx.clearRect(0,0,photoCanvas.width,photoCanvas.height);
-      const source=currentImage?currentImage:(cameraPreviewReady?cameraPreview:null);
-      if(source){
-        const imgAR=source.width/source.height, canvasAR=photoCanvas.width/photoCanvas.height;
-        let baseW,baseH; if(imgAR>canvasAR){baseH=photoCanvas.height;baseW=baseH*imgAR;} else {baseW=photoCanvas.width;baseH=baseW/imgAR;}
-        const drawW=baseW*scale, drawH=baseH*scale;
-        const minOffsetX=Math.min(0,photoCanvas.width-drawW), minOffsetY=Math.min(0,photoCanvas.height-drawH);
-        offsetX=clamp(offsetX,minOffsetX,0); offsetY=clamp(offsetY,minOffsetY,0);
-        const drawX=(photoCanvas.width-drawW)/2+offsetX, drawY=(photoCanvas.height-drawH)/2+offsetY;
-        ctx.drawImage(source,drawX,drawY,drawW,drawH);
-      }
-      // overlay teks opsional ala poster
-      const title=titleText.value.trim(); const date=dateText.value.trim();
-      if(title||date){ const barH=Math.max(56,photoCanvas.height*0.12), pad=Math.max(18,Math.min(photoCanvas.width,photoCanvas.height)*0.02); ctx.save(); ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,photoCanvas.height-barH,photoCanvas.width,barH); ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.font=`800 ${Math.max(18, barH*0.33)}px Montserrat, Inter, ui-sans-serif`; ctx.fillText(title,pad,photoCanvas.height-barH/2-(date?barH*0.18:0)); if(date){ ctx.globalAlpha=.95; ctx.font=`600 ${Math.max(14, barH*0.22)}px Inter, ui-sans-serif`; ctx.fillText(date,pad,photoCanvas.height-barH/2+barH*0.18); } ctx.restore(); }
-      if(customFrame){ ctx.drawImage(customFrame,0,0,photoCanvas.width,photoCanvas.height); }
-      const canDownload=sourceLoaded(); [downloadBtn,downloadBtn_m,downloadBtn_big].forEach(el=>{ if(el) el.disabled=!canDownload; });
+  // Drawing
+  function draw(){
+    // reset & clear device pixels
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawChecker(ctx, canvas.width, canvas.height, 16*(window.devicePixelRatio||1));
+
+    // scale to CSS px then to design units
+    const dpr = Math.min(window.devicePixelRatio||1,2);
+    const cssW = canvas.clientWidth; const cssH = canvas.clientHeight;
+    const kx = cssW / state.designW; const ky = cssH / state.designH;
+    ctx.scale(dpr,dpr); ctx.scale(kx,ky);
+
+    // photo
+    if(state.photo){
+      const scale = baseCover() * state.zoom;
+      const dw = state.photo.w * scale; const dh = state.photo.h * scale;
+      const x = state.designW/2 + state.offset.x - dw/2;
+      const y = state.designH/2 + state.offset.y - dh/2;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(state.photo.img, x, y, dw, dh);
     }
 
-    function changeSize(key){ currentSizeKey=key; currentSize=SIZES[key]; offsetX=offsetY=0; scale=1; syncZoom(1); setAspectRatio(); setSegmentedActive(); }
-    sizePortrait.addEventListener('click',()=>changeSize('portrait'));
-    sizeLandscape.addEventListener('click',()=>changeSize('landscape'));
-    sizeSquare.addEventListener('click',()=>changeSize('square'));
+    if(state.showGrid) drawGrid(ctx, state.designW, state.designH);
 
-    imageUpload.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; stopCamera(); const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ currentImage=img; messageBox.style.opacity='0'; scale=1; offsetX=offsetY=0; syncZoom(1); redrawCanvas(); }; img.src=ev.target.result; }; r.readAsDataURL(f); });
-    frameUpload.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ customFrame=img; frameName.textContent=`Bingkai: ${f.name}`; redrawCanvas(); }; img.src=ev.target.result; }; r.readAsDataURL(f); });
+    if(state.activeFrameIdx>=0 && state.frames[state.activeFrameIdx]){
+      const f = state.frames[state.activeFrameIdx];
+      ctx.drawImage(f.img, 0, 0, state.designW, state.designH);
+    }
 
-    ;[cameraBtn,cameraBtn2,cameraBtn_m].forEach(btn=> btn && btn.addEventListener('click', async()=>{
-      if(cameraStream){ stopCamera(); return; }
-      try{ const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}}); cameraStream=s; cameraPreview.srcObject=s; cameraPreview.classList.remove('hidden'); cameraPreview.onloadedmetadata=()=>{ cameraPreview.play(); cameraPreviewReady=true; messageBox.style.opacity='0'; currentImage=null; cameraCapturedOnce=false; syncZoom(1); redrawCanvas(); }; }
-      catch(err){ messageBox.innerHTML='<span class="text-red-600">Gagal mengakses kamera</span>'; messageBox.style.opacity='1'; console.error(err); }
-    }));
+    designChip.textContent = `${Math.round(state.designW)}×${Math.round(state.designH)} design`;
+    if(state.photo){
+      zoomChip.style.display = '';
+      zoomChip.textContent = `Zoom ${Math.round(state.zoom*100)}%`;
+    } else { zoomChip.style.display = 'none'; }
+  }
 
-    function stopCamera(){ if(!cameraStream) return; cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; cameraPreviewReady=false; cameraPreview.classList.add('hidden'); }
+  // Loaders
+  async function loadImageFromFile(file){
+    const objectUrl = URL.createObjectURL(file);
+    if (typeof createImageBitmap === 'function'){
+      try {
+        const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        return { img: bmp, w: bmp.width, h: bmp.height, src: objectUrl, name: file.name };
+      } catch(e) { /* fallback */ }
+    }
+    // Fallback
+    return new Promise((resolve, reject)=>{
+      const img = new Image();
+      img.onload = ()=>resolve({ img, w: img.naturalWidth, h: img.naturalHeight, src: objectUrl, name: file.name });
+      img.onerror = reject; img.src = objectUrl;
+    });
+  }
 
-    const canvasContainer=document.querySelector('.canvas-wrap');
-    function captureFromCamera(){ if(!cameraStream||!cameraPreviewReady) return; const t=document.createElement('canvas'); t.width=cameraPreview.videoWidth; t.height=cameraPreview.videoHeight; const c=t.getContext('2d'); c.drawImage(cameraPreview,0,0,t.width,t.height); const img=new Image(); img.onload=()=>{ currentImage=img; cameraCapturedOnce=true; stopCamera(); redrawCanvas(); }; img.src=t.toDataURL('image/png'); }
-    let lastTapTime=0;
-    canvasContainer.addEventListener('dblclick',()=>{ if(cameraStream) captureFromCamera(); else { offsetX=offsetY=0; syncZoom(1); redrawCanvas(); } });
-    canvasContainer.addEventListener('touchend',(e)=>{ if(e.touches.length>0) return; const now=Date.now(); if(now-lastTapTime<300){ if(cameraStream) captureFromCamera(); else { offsetX=offsetY=0; syncZoom(1); redrawCanvas(); } } lastTapTime=now; },{passive:true});
+  async function onPhotoChange(e){
+    const file = e.target.files && e.target.files[0]; if(!file) return;
+    const p = await loadImageFromFile(file);
+    state.photo = p; state.offset={x:0,y:0}; state.zoom=1; draw();
+  }
+  async function onFrameChange(e){
+    const files = Array.from(e.target.files||[]); if(!files.length) return;
+    const imgs = await Promise.all(files.map(loadImageFromFile));
+    state.frames = state.frames.concat(imgs);
+    if(state.activeFrameIdx===-1) state.activeFrameIdx = state.frames.length - imgs.length; // first of new
+    rebuildThumbs();
+    // If first time / or size changed, adopt frame size and re-center
+    const f = state.frames[state.activeFrameIdx];
+    if (f){ state.designW=f.w; state.designH=f.h; state.offset={x:0,y:0}; state.zoom=1; }
+    resizeCanvas();
+  }
 
-    photoCanvas.addEventListener('mousedown',(e)=>{ if(!sourceLoaded()) return; isDragging=true; const r=photoCanvas.getBoundingClientRect(); startX=e.clientX-r.left; startY=e.clientY-r.top; });
-    window.addEventListener('mousemove',(e)=>{ if(!isDragging) return; const r=photoCanvas.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; offsetX+=(x-startX); offsetY+=(y-startY); startX=x; startY=y; redrawCanvas(); });
-    window.addEventListener('mouseup',()=>{ isDragging=false; });
+  // Thumbnails
+  function rebuildThumbs(){
+    thumbsEl.innerHTML = '';
+    state.frames.forEach((f,i)=>{
+      const btn = document.createElement('button'); btn.className='thumb'+(i===state.activeFrameIdx?' active':'');
+      btn.title = f.name || 'Frame';
+      const img = document.createElement('img'); img.src = f.src; btn.appendChild(img);
+      btn.addEventListener('click', ()=>{ state.activeFrameIdx=i; const ff=state.frames[i]; if(ff){ state.designW=ff.w; state.designH=ff.h; state.offset={x:0,y:0}; state.zoom=1; resizeCanvas(); } rebuildThumbs(); });
+      thumbsEl.appendChild(btn);
+    });
+  }
 
-    photoCanvas.addEventListener('wheel',(e)=>{ if(!sourceLoaded()) return; e.preventDefault(); zoomAtPoint(Math.exp(-e.deltaY*0.001),e.clientX,e.clientY); },{passive:false});
-    function zoomAtPoint(factor,cx,cy){ const rect=photoCanvas.getBoundingClientRect(); const px=cx-rect.left-photoCanvas.width/2-offsetX; const py=cy-rect.top-photoCanvas.height/2-offsetY; const ns=clamp(scale*factor,1,3); const change=ns/scale; offsetX-=px*(change-1); offsetY-=py*(change-1); syncZoom(ns); redrawCanvas(); }
+  // Pointer interactions
+  const drag = { on:false, lastX:0, lastY:0 };
+  canvas.addEventListener('pointerdown', (ev)=>{ canvas.setPointerCapture?.(ev.pointerId); drag.on=true; drag.lastX=ev.clientX; drag.lastY=ev.clientY; });
+  canvas.addEventListener('pointermove', (ev)=>{
+    if(!drag.on) return; const cssW=canvas.clientWidth, cssH=canvas.clientHeight;
+    const kx=cssW/state.designW, ky=cssH/state.designH;
+    const dx=(ev.clientX-drag.lastX)/kx; const dy=(ev.clientY-drag.lastY)/ky;
+    drag.lastX=ev.clientX; drag.lastY=ev.clientY; state.offset.x+=dx; state.offset.y+=dy; draw();
+  });
+  canvas.addEventListener('pointerup', (ev)=>{ try{ canvas.releasePointerCapture?.(ev.pointerId); }catch{} drag.on=false; });
+  canvas.addEventListener('pointercancel', ()=>{ drag.on=false; });
+  canvas.addEventListener('wheel', (ev)=>{
+    ev.preventDefault(); const delta = -ev.deltaY; const factor = Math.exp(delta*0.0015);
+    const rect=canvas.getBoundingClientRect(); const cssX=ev.clientX-rect.left; const cssY=ev.clientY-rect.top;
+    const kx=canvas.clientWidth/state.designW, ky=canvas.clientHeight/state.designH;
+    const dx=cssX/kx, dy=cssY/ky;
+    state.offset.x=(state.offset.x-dx)*factor+dx; state.offset.y=(state.offset.y-dy)*factor+dy;
+    state.zoom = clamp(state.zoom*factor, 0.2, 8);
+    draw();
+  }, { passive:false });
 
-    photoCanvas.addEventListener('touchstart',(e)=>{ if(!sourceLoaded()) return; if(e.touches.length===2){ lastPinchDistance=dist(e.touches[0],e.touches[1]); isDragging=false; } else if(e.touches.length===1){ isDragging=true; const r=photoCanvas.getBoundingClientRect(); startX=e.touches[0].clientX-r.left; startY=e.touches[0].clientY-r.top; lastPinchDistance=null; } },{passive:false});
-    photoCanvas.addEventListener('touchmove',(e)=>{ if(!sourceLoaded()) return; e.preventDefault(); if(e.touches.length===2 && lastPinchDistance!==null){ const d=dist(e.touches[0],e.touches[1]); const factor=d/lastPinchDistance; const midX=(e.touches[0].clientX+e.touches[1].clientX)/2; const midY=(e.touches[0].clientY+e.touches[1].clientY)/2; zoomAtPoint(factor,midX,midY); lastPinchDistance=d; } else if(e.touches.length===1 && isDragging){ const r=photoCanvas.getBoundingClientRect(); const x=e.touches[0].clientX-r.left, y=e.touches[0].clientY-r.top; offsetX+=(x-startX); offsetY+=(y-startY); startX=x; startY=y; redrawCanvas(); } },{passive:false});
-    photoCanvas.addEventListener('touchend',()=>{ isDragging=false; lastPinchDistance=null; },{passive:true});
-    function dist(a,b){ return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY); }
+  // Controls
+  zoomInBtn.addEventListener('click', ()=>{ state.zoom=clamp(state.zoom*1.1,0.2,8); draw(); });
+  zoomOutBtn.addEventListener('click', ()=>{ state.zoom=clamp(state.zoom/1.1,0.2,8); draw(); });
+  centerBtn.addEventListener('click', ()=>{ state.offset={x:0,y:0}; draw(); });
+  fitBtn.addEventListener('click', ()=>{ state.offset={x:0,y:0}; state.zoom=1; draw(); });
+  resetBtn.addEventListener('click', ()=>{ state.offset={x:0,y:0}; state.zoom=1; state.frames=[]; state.activeFrameIdx=-1; rebuildThumbs(); state.designW=1080; state.designH=1080; resizeCanvas(); });
+  gridBtn.addEventListener('click', ()=>{ state.showGrid=!state.showGrid; gridBtn.classList.toggle('primary', state.showGrid); draw(); });
+  exportSizeSel.addEventListener('change', ()=>{ state.exportSize = Number(exportSizeSel.value)||1080; });
+  downloadBtn.addEventListener('click', ()=>{ exportPNG(); });
+  removeFrameBtn.addEventListener('click', ()=>{
+    if(state.activeFrameIdx<0) return; state.frames.splice(state.activeFrameIdx,1);
+    if(state.frames.length){ state.activeFrameIdx = Math.max(0, state.activeFrameIdx-1); const f=state.frames[state.activeFrameIdx]; state.designW=f.w; state.designH=f.h; }
+    else { state.activeFrameIdx=-1; state.designW=1080; state.designH=1080; }
+    rebuildThumbs(); resizeCanvas();
+  });
+  fitPhotoBtn.addEventListener('click', ()=>{ if(!state.photo) return; state.offset={x:0,y:0}; state.zoom=1; draw(); });
 
-    function syncZoom(val){ scale=parseFloat(val); if(zoomSliderDesktop) zoomSliderDesktop.value=scale; if(zoomSliderMobile) zoomSliderMobile.value=scale; }
-    if(zoomMinus) zoomMinus.addEventListener('click',()=>{ syncZoom(clamp(scale-0.05,1,3)); redrawCanvas(); });
-    if(zoomPlus) zoomPlus.addEventListener('click',()=>{ syncZoom(clamp(scale+0.05,1,3)); redrawCanvas(); });
-    if(zoomSliderDesktop) zoomSliderDesktop.addEventListener('input',(e)=>{ syncZoom(e.target.value); redrawCanvas(); });
-    if(zoomSliderMobile)  zoomSliderMobile.addEventListener('input',(e)=>{ syncZoom(e.target.value); redrawCanvas(); });
+  frameInput.addEventListener('change', onFrameChange);
+  photoInput.addEventListener('change', onPhotoChange);
 
-    function doDownload(){ if(!sourceLoaded()) return; const a=document.createElement('a'); a.download='foto-bingkai.png'; a.href=photoCanvas.toDataURL('image/png'); a.click(); }
-    ;[downloadBtn,downloadBtn_m,downloadBtn_big].forEach(b=> b && b.addEventListener('click',doDownload));
+  // Export
+  function exportPNG(){
+    const width = state.exportSize; const height = computeExportHeight(state.designW, state.designH, width);
+    const out = document.createElement('canvas'); out.width = width; out.height = height; const g = out.getContext('2d');
+    const k = width / state.designW; g.save(); g.scale(k,k);
+    if(state.photo){
+      const scale = baseCover() * state.zoom; const dw=state.photo.w*scale, dh=state.photo.h*scale;
+      const x=state.designW/2 + state.offset.x - dw/2; const y=state.designH/2 + state.offset.y - dh/2;
+      g.imageSmoothingQuality='high'; g.drawImage(state.photo.img, x, y, dw, dh);
+    }
+    if(state.activeFrameIdx>=0 && state.frames[state.activeFrameIdx]){
+      const f=state.frames[state.activeFrameIdx]; g.drawImage(f.img, 0, 0, state.designW, state.designH);
+    }
+    g.restore();
+    out.toBlob((blob)=>{ if(!blob) return; const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`twibbon-${width}x${height}.png`; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1500); }, 'image/png');
+  }
 
-    function init(){ changeSize('portrait'); }
-    init();
-  </script>
+  // Initial layout
+  resizeCanvas();
+  runSelfTests();
+
+  // ---- Lightweight Self Tests (console only) ----
+  function runSelfTests(){
+    try{
+      let passed=0, failed=0; const t=(name,cond)=>{ if(cond){passed++;} else {failed++; console.error('[Test FAIL]', name);} };
+      // clamp
+      t('clamp lower bound', (function(){return clamp(-5,0,10)===0;})());
+      t('clamp upper bound', clamp(15,0,10)===10);
+      t('clamp middle', clamp(5,0,10)===5);
+      t('clamp min boundary', clamp(0.1,0.2,8)===0.2);
+      t('clamp max boundary', clamp(10,0.2,8)===8);
+
+      // export height
+      t('export height 1:1', computeExportHeight(1000,1000,1080)===1080);
+      t('export height 16:9', computeExportHeight(1600,900,1600)===900);
+      t('export height 9:16', computeExportHeight(900,1600,900)===1600);
+      t('export height rounding', computeExportHeight(3,2,1001)===667);
+
+      // cover scale
+      t('cover wider photo', coverScale(2000,1000,1000,1000)===1);
+      t('cover taller photo', coverScale(1000,2000,1000,1000)===1);
+      t('cover equal ratio = 2', coverScale(1000,1000,2000,2000)===2);
+      t('cover needs up-scale', Math.abs(coverScale(800,800,1000,1000)-1.25)<1e-6);
+
+      // DPR mapping sanity (no exceptions)
+      const testCanvas=document.createElement('canvas'); const dpr=2, cssW=300, cssH=150; testCanvas.width=cssW*dpr; testCanvas.height=cssH*dpr; const g=testCanvas.getContext('2d');
+      g.setTransform(1,0,0,1,0,0); g.scale(dpr,dpr); g.scale(cssW/100, cssH/50); g.fillRect(0,0,100,50);
+      t('mapping finite', Number.isFinite(testCanvas.width) && Number.isFinite(testCanvas.height));
+
+      const summary=`[Twibbon Maker tests] passed=${passed}, failed=${failed}`; if(failed===0) console.info(summary); else console.warn(summary);
+    }catch(err){ console.warn('Self-tests encountered an error:', err); }
+  }
+})();
+
+// ---- Icons (tiny inline SVGs) ----
+function iconPlus(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';}
+function iconMinus(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>';}
+function iconCrosshair(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';}
+function iconDownload(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';}
+function iconFit(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4"/><path d="M21 7V3h-4"/><path d="M21 17v4h-4"/><path d="M3 17v4h4"/></svg>';}
+function iconReset(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-9 9Z"/><path d="M3 3v6h6"/></svg>';}
+function iconTrash(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
+</script>
 </body>
 </html>
