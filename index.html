@@ -2,500 +2,251 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bingkai Foto Acara</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Bingkai Foto Acara – Tema Gesit 80</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    html, body { height: 100%; }
-    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-    .container { max-width: 980px; }
-    .canvas-container {
-      position: relative;
-      width: 100%;
-      background-color: #fff;
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
-      overflow: hidden;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
+    :root{
+      --merah:#E11D48; /* rose-600 */
+      --merah-tua:#B91C1C; /* red-700 */
+      --hitam:#111827; /* gray-900 */
+      --abu:#6B7280; /* gray-500 */
     }
-    canvas, video {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      border-radius: 1.5rem; object-fit: cover;
-      touch-action: none; /* penting: agar gesture custom bekerja */
+    body{ font-family:'Inter',sans-serif; background:linear-gradient(180deg,#f7f8fb 0%,#eef1f5 100%); color:#111827; }
+    .headline{ font-family:'Montserrat',ui-sans-serif; letter-spacing:.02em; }
+    /* pita merah putih ala poster */
+    .hero-bg{ position:relative; overflow:hidden; border-radius:1.25rem; }
+    .hero-bg:before, .hero-bg:after{ content:""; position:absolute; width:120vw; height:120vw; border-radius:50%; pointer-events:none; filter:drop-shadow(0 10px 20px rgba(0,0,0,.12)); }
+    .hero-bg:before{ top:-65vw; right:-55vw; background:
+      radial-gradient(circle at 60% 60%, #fff 0 34%, transparent 35%),
+      radial-gradient(circle at 40% 40%, var(--merah) 0 44%, transparent 45%),
+      radial-gradient(circle at 50% 50%, var(--merah-tua) 0 52%, transparent 53%);
+      transform:rotate(-12deg);
+      opacity:.95;
     }
-    .draggable { cursor: grab; }
-    .dragging { cursor: grabbing; }
+    .hero-bg:after{ bottom:-75vw; left:-60vw; background:
+      radial-gradient(circle at 60% 60%, #fff 0 34%, transparent 35%),
+      radial-gradient(circle at 40% 40%, var(--merah) 0 44%, transparent 45%),
+      radial-gradient(circle at 50% 50%, var(--merah-tua) 0 52%, transparent 53%);
+      transform:rotate(18deg);
+      opacity:.95;
+    }
+    .canvas-wrap{ position:relative; background:radial-gradient(circle at 50% 30%, rgba(0,0,0,.04), transparent 60%); border:1px solid #e5e7eb; border-radius:1rem; overflow:hidden; }
+    #ratioKeeper{ width:100%; }
+    canvas, video{ position:absolute; inset:0; width:100%; height:100%; border-radius:1rem; object-fit:cover; touch-action:none; }
+    .segmented button{ padding:.4rem .9rem; border-radius:999px; font-weight:600; }
+    .segmented .active{ background:var(--merah); color:#fff; box-shadow:0 4px 10px rgba(225,29,72,.25); }
+    .icon-btn{ display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:999px; box-shadow:0 6px 20px rgba(0,0,0,.12); transition:transform .12s ease; }
+    .icon-btn:active{ transform:scale(.97); }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4 sm:p-8">
-  <div class="container mx-auto p-6 bg-white rounded-3xl shadow-2xl">
-    <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-2">Buat Foto Acara Anda</h1>
-    <p class="text-sm sm:text-base text-center text-gray-500 mb-6">Unggah foto / pakai kamera, atur dengan cubit untuk zoom & geser dengan satu jari. Pilih bingkai bawaan.</p>
-
-    <!-- Ukuran -->
-    <div class="mb-6">
-      <p class="text-lg sm:text-xl font-semibold text-gray-700 text-center mb-3">Pilih Ukuran</p>
-      <div class="flex flex-wrap justify-center gap-3">
-        <button id="size-portrait" class="px-6 py-2 rounded-full font-semibold text-white bg-blue-500 hover:bg-blue-600" onclick="changeSize('portrait')">Potret</button>
-        <button id="size-landscape" class="px-6 py-2 rounded-full font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300" onclick="changeSize('landscape')">Lanskap</button>
-        <button id="size-square" class="px-6 py-2 rounded-full font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300" onclick="changeSize('square')">Persegi</button>
-      </div>
-    </div>
-
-    <!-- Upload & Kamera -->
-    <div class="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+<body class="min-h-screen">
+  <header class="max-w-screen-xl mx-auto px-4 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl" style="background:conic-gradient(from 0deg at 50% 50%, #fff 0 25%, var(--merah) 0 50%, #fff 0 75%, var(--merah) 0 100%);"></div>
       <div>
-        <label for="imageUpload" class="block text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg cursor-pointer">
-          <i class="fas fa-upload mr-2"></i> Unggah Foto
-        </label>
-        <input type="file" id="imageUpload" accept="image/*" class="hidden" />
+        <div class="headline text-2xl font-extrabold text-[var(--hitam)]">DIRGAHAYU INDONESIA 80</div>
+        <div class="text-xs text-gray-600">“BERSATU KITA GESIT” · The Gesit Companies</div>
       </div>
-      <button id="cameraBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg">
-        <i class="fas fa-camera mr-2"></i> Gunakan Kamera
-      </button>
     </div>
+    <div class="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+      <i class="fa-regular fa-circle-question"></i>
+      <span id="howto">Pinch untuk zoom · Geser untuk pan · Double tap reset</span>
+    </div>
+  </header>
 
-    <video id="cameraPreview" class="hidden" autoplay playsinline></video>
+  <main class="max-w-screen-xl mx-auto px-4 pb-24">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <section class="lg:col-span-3">
+        <div class="hero-bg p-3 sm:p-5 bg-white/60">
+          <div class="flex items-center justify-between mb-3 relative z-10">
+            <div class="segmented bg-white/80 border border-gray-200 rounded-full p-1">
+              <button id="size-portrait" class="active">Potret</button>
+              <button id="size-landscape" class="text-gray-700">Lanskap</button>
+              <button id="size-square" class="text-gray-700">Persegi</button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <button id="zoomMinus" class="icon-btn bg-white" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus text-gray-800"></i></button>
+              <input type="range" id="zoomSlider" min="1" max="3" value="1" step="0.01" class="w-40" />
+              <button id="zoomPlus" class="icon-btn bg-white" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus text-gray-800"></i></button>
+            </div>
+          </div>
 
-    <!-- Kanvas & Panel Bingkai -->
-    <div class="flex flex-col lg:flex-row gap-8 mb-6">
-      <div class="w-full lg:w-2/3">
-        <div id="canvasContainer" class="canvas-container rounded-3xl">
-          <div class="w-full" id="ratioKeeper"></div>
-          <canvas id="photoCanvas" class="rounded-3xl draggable"></canvas>
-          <div id="messageBox" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 bg-opacity-70 text-gray-600 rounded-3xl p-4 text-center text-sm transition-opacity duration-300 opacity-100">
-            <i class="fas fa-image text-4xl mb-2"></i>
-            <span>Unggah foto Anda atau gunakan kamera</span>
+          <div class="canvas-wrap">
+            <div id="ratioKeeper"></div>
+            <canvas id="photoCanvas"></canvas>
+            <video id="cameraPreview" class="hidden" autoplay playsinline></video>
+            <div id="messageBox" class="absolute inset-0 flex flex-col items-center justify-center text-gray-800 p-4 text-center text-sm transition-opacity duration-300 opacity-100">
+              <i class="fas fa-image text-4xl mb-2 opacity-80"></i>
+              <span>Unggah foto Anda atau gunakan kamera</span>
+            </div>
+            <div class="hidden sm:flex absolute bottom-3 right-3 gap-2 z-10">
+              <label for="imageUpload" class="icon-btn" style="background:var(--merah)"><i class="fa-solid fa-upload text-white"></i></label>
+              <button id="cameraBtn" class="icon-btn" style="background:var(--merah-tua)"><i class="fa-solid fa-camera text-white"></i></button>
+              <label for="frameUpload" class="icon-btn bg-gray-900"><i class="fa-regular fa-images text-white"></i></label>
+              <button id="downloadBtn" disabled class="icon-btn bg-gray-300 disabled:opacity-50"><i class="fa-solid fa-download text-gray-700"></i></button>
+            </div>
+          </div>
+
+          <div id="zoomControls" class="sm:hidden mt-3 flex items-center gap-2 relative z-10">
+            <i class="fa-solid fa-magnifying-glass-minus text-gray-600"></i>
+            <input type="range" id="zoomSlider_m" min="1" max="3" value="1" step="0.01" class="flex-1" />
+            <i class="fa-solid fa-magnifying-glass-plus text-gray-600"></i>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="w-full lg:w-1/3">
-        <p class="text-lg sm:text-xl font-semibold text-gray-700 mb-2">Bingkai Bawaan</p>
-        <div id="frameGrid" class="grid grid-cols-2 gap-3 mb-4"></div>
-        <div class="grid grid-cols-2 gap-3 mb-4">
-          <label class="col-span-2 text-sm text-gray-600">Judul (opsional)</label>
-          <input id="titleText" type="text" class="col-span-2 border rounded-xl px-3 py-2" placeholder="Nama Acara" />
-          <label class="col-span-2 text-sm text-gray-600">Tanggal (opsional)</label>
-          <input id="dateText" type="text" class="col-span-2 border rounded-xl px-3 py-2" placeholder="16 Agustus 2025" />
+      <aside class="lg:col-span-2">
+        <div class="bg-white/80 rounded-2xl p-5 border border-gray-200">
+          <h2 class="headline text-xl text-[var(--hitam)] mb-3">Detail Acara</h2>
+          <div class="grid grid-cols-1 gap-3">
+            <div>
+              <label class="text-xs text-gray-500">Judul (opsional)</label>
+              <input id="titleText" type="text" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400" placeholder="Nama Acara" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Tanggal (opsional)</label>
+              <input id="dateText" type="text" class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400" placeholder="16 Agustus 2025" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Status Bingkai</label>
+              <div id="frameName" class="mt-1 text-sm text-gray-700">Belum ada bingkai terpasang</div>
+            </div>
+          </div>
+
+          <div class="mt-5 hidden sm:flex gap-2">
+            <label for="imageUpload" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white" style="background:var(--merah)"><i class="fa-solid fa-upload"></i> Unggah Foto</label>
+            <button id="cameraBtn2" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white" style="background:var(--merah-tua)"><i class="fa-solid fa-camera"></i> Kamera</button>
+            <label for="frameUpload" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white"><i class="fa-regular fa-images"></i> Bingkai</label>
+          </div>
+
+          <div class="mt-3 flex justify-center">
+            <button id="downloadBtn_big" disabled class="px-5 py-2 rounded-xl bg-gray-300 text-gray-700 disabled:opacity-50"><i class="fa-solid fa-download mr-2"></i>Unduh PNG</button>
+          </div>
         </div>
-        <div class="flex flex-wrap gap-3">
-          <button id="clearFrameBtn" class="px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800">Tanpa Bingkai</button>
-          <button id="downloadBtn" class="px-5 py-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow disabled:bg-gray-400" disabled>
-            <i class="fas fa-download mr-2"></i>Unduh PNG
-          </button>
-        </div>
-      </div>
+      </aside>
     </div>
+  </main>
 
-    <!-- Kontrol Zoom -->
-    <div id="zoomControls" class="flex flex-col items-center gap-2 mt-2 hidden">
-      <p class="text-lg font-semibold text-gray-700">Perbesar / Perkecil</p>
-      <input type="range" id="zoomSlider" min="1" max="3" value="1" step="0.01" class="w-full sm:w-1/2" />
-      <p class="text-xs text-gray-500">Tips: Cubit dengan dua jari untuk zoom; seret dengan satu jari untuk geser; ketuk dua kali untuk reset zoom.</p>
+  <div class="sm:hidden fixed bottom-3 left-0 right-0 z-50">
+    <div class="max-w-screen-xl mx-auto px-3">
+      <div class="bg-white/90 rounded-2xl p-3 border border-gray-200 shadow-xl flex items-center justify-between">
+        <label for="imageUpload" class="icon-btn" style="background:var(--merah)"><i class="fa-solid fa-upload text-white"></i></label>
+        <button id="cameraBtn_m" class="icon-btn" style="background:var(--merah-tua)"><i class="fa-solid fa-camera text-white"></i></button>
+        <label for="frameUpload" class="icon-btn bg-gray-900"><i class="fa-regular fa-images text-white"></i></label>
+        <button id="downloadBtn_m" disabled class="icon-btn bg-gray-300 disabled:opacity-50"><i class="fa-solid fa-download text-gray-700"></i></button>
+      </div>
     </div>
   </div>
 
+  <input type="file" id="imageUpload" accept="image/*" class="hidden" />
+  <input type="file" id="frameUpload" accept="image/png" class="hidden" />
+
   <script>
-    // Elemen
-    const imageUpload = document.getElementById('imageUpload');
-    const cameraBtn = document.getElementById('cameraBtn');
-    const cameraPreview = document.getElementById('cameraPreview');
-    const photoCanvas = document.getElementById('photoCanvas');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const messageBox = document.getElementById('messageBox');
-    const canvasContainer = document.getElementById('canvasContainer');
-    const ratioKeeper = document.getElementById('ratioKeeper');
-    const zoomSlider = document.getElementById('zoomSlider');
-    const zoomControls = document.getElementById('zoomControls');
-    const titleText = document.getElementById('titleText');
-    const dateText = document.getElementById('dateText');
-    const clearFrameBtn = document.getElementById('clearFrameBtn');
-    const sizeButtons = [
-      document.getElementById('size-portrait'),
-      document.getElementById('size-landscape'),
-      document.getElementById('size-square')
-    ];
-    const ctx = photoCanvas.getContext('2d');
+    const imageUpload=document.getElementById('imageUpload');
+    const frameUpload=document.getElementById('frameUpload');
+    const cameraBtn=document.getElementById('cameraBtn');
+    const cameraBtn2=document.getElementById('cameraBtn2');
+    const cameraBtn_m=document.getElementById('cameraBtn_m');
+    const cameraPreview=document.getElementById('cameraPreview');
+    const photoCanvas=document.getElementById('photoCanvas');
+    const downloadBtn=document.getElementById('downloadBtn');
+    const downloadBtn_m=document.getElementById('downloadBtn_m');
+    const downloadBtn_big=document.getElementById('downloadBtn_big');
+    const messageBox=document.getElementById('messageBox');
+    const ratioKeeper=document.getElementById('ratioKeeper');
+    const zoomSliderDesktop=document.getElementById('zoomSlider');
+    const zoomMinus=document.getElementById('zoomMinus');
+    const zoomPlus=document.getElementById('zoomPlus');
+    const zoomSliderMobile=document.getElementById('zoomSlider_m');
+    const zoomControls=document.getElementById('zoomControls');
+    const titleText=document.getElementById('titleText');
+    const dateText=document.getElementById('dateText');
+    const frameName=document.getElementById('frameName');
 
-    // Data
-    const SIZES = {
-      portrait: { w: 1536, h: 2816 },
-      landscape: { w: 2816, h: 1536 },
-      square: { w: 2000, h: 2000 }
-    };
-    let currentSizeKey = 'portrait';
-    let currentSize = SIZES[currentSizeKey];
+    const sizePortrait=document.getElementById('size-portrait');
+    const sizeLandscape=document.getElementById('size-landscape');
+    const sizeSquare=document.getElementById('size-square');
 
-    // Gambar & kamera
-    let currentImage = null; // HTMLImageElement
-    let cameraStream = null; // MediaStream
+    const ctx=photoCanvas.getContext('2d');
 
-    // Transformasi
-    let isDragging = false;
-    let startX = 0, startY = 0;
-    let offsetX = 0, offsetY = 0; // translasi
-    let scale = 1;                // zoom
-    let lastPinchDistance = null; // untuk gesture dua jari
+    const SIZES={portrait:{w:1080,h:1920}, landscape:{w:1920,h:1080}, square:{w:1500,h:1500}};
+    let currentSizeKey='portrait', currentSize=SIZES[currentSizeKey];
 
-    // Frame bawaan (digambar via canvas)
-    let activeFrameKey = 'minimal';
+    let currentImage=null; let cameraStream=null; let cameraPreviewReady=false; let cameraCapturedOnce=false;
+    let customFrame=null; let isDragging=false,startX=0,startY=0,offsetX=0,offsetY=0,scale=1,lastPinchDistance=null;
 
-    const FRAMES = [
-      { key: 'minimal', name: 'Minimal Putih', draw: (w,h) => {
-          // border tipis
-          ctx.save();
-          ctx.lineWidth = Math.max(12, Math.min(w,h) * 0.006);
-          ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-          ctx.strokeRect(0,0,w,h);
-          ctx.restore();
-        }
-      },
-      { key: 'rounded', name: 'Rounded Shadow', draw: (w,h) => {
-          ctx.save();
-          const r = Math.min(w,h) * 0.04;
-          ctx.shadowColor = 'rgba(0,0,0,0.25)';
-          ctx.shadowBlur = r * 0.8;
-          ctx.strokeStyle = 'white';
-          ctx.lineWidth = r * 0.6;
-          roundedRectPath(0 + r, 0 + r, w - 2*r, h - 2*r, r);
-          ctx.stroke();
-          ctx.restore();
-        }
-      },
-      { key: 'gradient', name: 'Gradien', draw: (w,h) => {
-          const t = ctx.createLinearGradient(0,0,w,h);
-          t.addColorStop(0, '#6366f1');
-          t.addColorStop(1, '#ec4899');
-          ctx.save();
-          ctx.lineWidth = Math.max(24, Math.min(w,h) * 0.02);
-          ctx.strokeStyle = t;
-          roundedRectPath(12,12,w-24,h-24, Math.min(w,h)*0.04);
-          ctx.stroke();
-          ctx.restore();
-        }
-      },
-      { key: 'ribbon', name: 'Pita Sudut', draw: (w,h) => {
-          ctx.save();
-          // sudut kiri atas
-          ctx.fillStyle = '#ef4444';
-          ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w*0.18,0); ctx.lineTo(0,w*0.18); ctx.closePath(); ctx.fill();
-          // sudut kanan bawah
-          ctx.fillStyle = '#10b981';
-          ctx.beginPath(); ctx.moveTo(w,h); ctx.lineTo(w,h - w*0.18); ctx.lineTo(w - w*0.18,h); ctx.closePath(); ctx.fill();
-          ctx.restore();
-        }
-      },
-      { key: 'eventCard', name: 'Kartu Acara', draw: (w,h) => {
-          const pad = Math.max(24, Math.min(w,h)*0.02);
-          // bar bawah
-          ctx.save();
-          ctx.fillStyle = 'rgba(0,0,0,0.5)';
-          const barH = Math.max(80, h*0.12);
-          ctx.fillRect(0,h-barH,w,barH);
-          // teks
-          ctx.fillStyle = '#fff';
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'middle';
-          ctx.font = `700 ${Math.max(22, barH*0.33)}px Inter, ui-sans-serif`;
-          const title = titleText.value?.trim() || '';
-          const date = dateText.value?.trim() || '';
-          ctx.fillText(title, pad, h - barH/2 - (date? barH*0.18:0));
-          if (date) {
-            ctx.globalAlpha = 0.9;
-            ctx.font = `500 ${Math.max(16, barH*0.22)}px Inter, ui-sans-serif`;
-            ctx.fillText(date, pad, h - barH/2 + barH*0.18);
-          }
-          ctx.restore();
-        }
-      }
-    ];
+    function setSegmentedActive(){ [sizePortrait,sizeLandscape,sizeSquare].forEach(b=>b.classList.remove('active')); document.getElementById('size-'+currentSizeKey).classList.add('active'); }
+    function setAspectRatio(){ const ar=currentSize.h/currentSize.w; ratioKeeper.style.paddingTop=(ar*100)+'%'; layoutCanvasPixels(); }
+    function layoutCanvasPixels(){ photoCanvas.width=currentSize.w; photoCanvas.height=currentSize.h; redrawCanvas(); }
+    function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+    function sourceLoaded(){ return !!(currentImage||cameraCapturedOnce); }
 
-    function roundedRectPath(x,y,w,h,r){
-      ctx.beginPath();
-      ctx.moveTo(x+r,y);
-      ctx.arcTo(x+w,y,x+w,y+h,r);
-      ctx.arcTo(x+w,y+h,x,y+h,r);
-      ctx.arcTo(x,y+h,x,y,r);
-      ctx.arcTo(x,y,x+w,y,r);
-      ctx.closePath();
-    }
-
-    // Inisialisasi rasio container via padding-top agar responsif
-    function setAspectRatio(){
-      const ar = currentSize.h / currentSize.w; // tinggi/lebar
-      ratioKeeper.style.paddingTop = (ar*100) + '%';
-      layoutCanvasPixels();
-    }
-
-    // Sinkronkan ukuran pixel kanvas dengan ukuran logis yang dipilih
-    function layoutCanvasPixels(){
-      photoCanvas.width = currentSize.w;
-      photoCanvas.height = currentSize.h;
-      redrawCanvas();
-    }
-
-    function setActiveSizeButton(key){
-      sizeButtons.forEach((btn)=>{
-        btn.classList.remove('bg-blue-500','text-white');
-        btn.classList.add('bg-gray-200','text-gray-700');
-      });
-      document.getElementById(`size-${key}`).classList.remove('bg-gray-200','text-gray-700');
-      document.getElementById(`size-${key}`).classList.add('bg-blue-500','text-white');
-    }
-
-    function changeSize(key){
-      currentSizeKey = key;
-      currentSize = SIZES[key];
-      setActiveSizeButton(key);
-      // Reset transform
-      offsetX = 0; offsetY = 0; scale = 1; zoomSlider.value = 1;
-      setAspectRatio();
-    }
-
-    // Menggambar ulang
     function redrawCanvas(){
-      ctx.clearRect(0,0,photoCanvas.width, photoCanvas.height);
-      const source = currentImage ? currentImage : (cameraPreviewReady ? cameraPreview : null);
-      if (source){
-        // dimensi fit contain lalu skala oleh 'scale'
-        const imgAR = source.width / source.height;
-        const canvasAR = photoCanvas.width / photoCanvas.height;
-        let baseW, baseH;
-        if (imgAR > canvasAR) { // img lebih lebar
-          baseH = photoCanvas.height;
-          baseW = baseH * imgAR;
-        } else {
-          baseW = photoCanvas.width;
-          baseH = baseW / imgAR;
-        }
-        const drawW = baseW * scale;
-        const drawH = baseH * scale;
-        // batasi offset agar gambar tetap menutupi kanvas
-        const minOffsetX = Math.min(0, photoCanvas.width - drawW);
-        const minOffsetY = Math.min(0, photoCanvas.height - drawH);
-        offsetX = clamp(offsetX, minOffsetX, 0);
-        offsetY = clamp(offsetY, minOffsetY, 0);
-        const drawX = (photoCanvas.width - drawW)/2 + offsetX;
-        const drawY = (photoCanvas.height - drawH)/2 + offsetY;
-        ctx.drawImage(source, drawX, drawY, drawW, drawH);
+      ctx.clearRect(0,0,photoCanvas.width,photoCanvas.height);
+      const source=currentImage?currentImage:(cameraPreviewReady?cameraPreview:null);
+      if(source){
+        const imgAR=source.width/source.height, canvasAR=photoCanvas.width/photoCanvas.height;
+        let baseW,baseH; if(imgAR>canvasAR){baseH=photoCanvas.height;baseW=baseH*imgAR;} else {baseW=photoCanvas.width;baseH=baseW/imgAR;}
+        const drawW=baseW*scale, drawH=baseH*scale;
+        const minOffsetX=Math.min(0,photoCanvas.width-drawW), minOffsetY=Math.min(0,photoCanvas.height-drawH);
+        offsetX=clamp(offsetX,minOffsetX,0); offsetY=clamp(offsetY,minOffsetY,0);
+        const drawX=(photoCanvas.width-drawW)/2+offsetX, drawY=(photoCanvas.height-drawH)/2+offsetY;
+        ctx.drawImage(source,drawX,drawY,drawW,drawH);
       }
-      // Gambar frame aktif
-      if (activeFrameKey){
-        const f = FRAMES.find(x=>x.key===activeFrameKey);
-        if (f) f.draw(photoCanvas.width, photoCanvas.height);
-      }
-      downloadBtn.disabled = !sourceLoaded();
+      // overlay teks opsional ala poster
+      const title=titleText.value.trim(); const date=dateText.value.trim();
+      if(title||date){ const barH=Math.max(56,photoCanvas.height*0.12), pad=Math.max(18,Math.min(photoCanvas.width,photoCanvas.height)*0.02); ctx.save(); ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,photoCanvas.height-barH,photoCanvas.width,barH); ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.font=`800 ${Math.max(18, barH*0.33)}px Montserrat, Inter, ui-sans-serif`; ctx.fillText(title,pad,photoCanvas.height-barH/2-(date?barH*0.18:0)); if(date){ ctx.globalAlpha=.95; ctx.font=`600 ${Math.max(14, barH*0.22)}px Inter, ui-sans-serif`; ctx.fillText(date,pad,photoCanvas.height-barH/2+barH*0.18); } ctx.restore(); }
+      if(customFrame){ ctx.drawImage(customFrame,0,0,photoCanvas.width,photoCanvas.height); }
+      const canDownload=sourceLoaded(); [downloadBtn,downloadBtn_m,downloadBtn_big].forEach(el=>{ if(el) el.disabled=!canDownload; });
     }
 
-    function sourceLoaded(){
-      return !!(currentImage || cameraCapturedOnce);
-    }
+    function changeSize(key){ currentSizeKey=key; currentSize=SIZES[key]; offsetX=offsetY=0; scale=1; syncZoom(1); setAspectRatio(); setSegmentedActive(); }
+    sizePortrait.addEventListener('click',()=>changeSize('portrait'));
+    sizeLandscape.addEventListener('click',()=>changeSize('landscape'));
+    sizeSquare.addEventListener('click',()=>changeSize('square'));
 
-    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+    imageUpload.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; stopCamera(); const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ currentImage=img; messageBox.style.opacity='0'; scale=1; offsetX=offsetY=0; syncZoom(1); redrawCanvas(); }; img.src=ev.target.result; }; r.readAsDataURL(f); });
+    frameUpload.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=(ev)=>{ const img=new Image(); img.onload=()=>{ customFrame=img; frameName.textContent=`Bingkai: ${f.name}`; redrawCanvas(); }; img.src=ev.target.result; }; r.readAsDataURL(f); });
 
-    // ===================== Upload Gambar =====================
-    imageUpload.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      stopCamera();
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-          currentImage = img;
-          messageBox.style.opacity = '0';
-          zoomControls.classList.remove('hidden');
-          scale = 1; offsetX = 0; offsetY = 0; zoomSlider.value = 1;
-          redrawCanvas();
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
+    ;[cameraBtn,cameraBtn2,cameraBtn_m].forEach(btn=> btn && btn.addEventListener('click', async()=>{
+      if(cameraStream){ stopCamera(); return; }
+      try{ const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}}); cameraStream=s; cameraPreview.srcObject=s; cameraPreview.classList.remove('hidden'); cameraPreview.onloadedmetadata=()=>{ cameraPreview.play(); cameraPreviewReady=true; messageBox.style.opacity='0'; currentImage=null; cameraCapturedOnce=false; syncZoom(1); redrawCanvas(); }; }
+      catch(err){ messageBox.innerHTML='<span class="text-red-600">Gagal mengakses kamera</span>'; messageBox.style.opacity='1'; console.error(err); }
+    }));
 
-    // ===================== Kamera =====================
-    let cameraPreviewReady = false;
-    let cameraCapturedOnce = false;
+    function stopCamera(){ if(!cameraStream) return; cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; cameraPreviewReady=false; cameraPreview.classList.add('hidden'); }
 
-    cameraBtn.addEventListener('click', async ()=>{
-      if (cameraStream){ stopCamera(); return; }
-      try{
-        const constraints = { video: { facingMode: 'user' } };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        cameraStream = stream;
-        cameraPreview.srcObject = stream;
-        cameraPreview.classList.remove('hidden');
-        cameraPreview.onloadedmetadata = () => {
-          cameraPreview.play();
-          cameraPreviewReady = true;
-          messageBox.style.opacity = '0';
-          currentImage = null; cameraCapturedOnce = false; zoomControls.classList.add('hidden');
-          redrawCanvas();
-        };
-      } catch(err){
-        messageBox.innerHTML = '<i class="fas fa-exclamation-circle text-4xl mb-2"></i><br/><span>Gagal mengakses kamera. Pastikan izin diberikan.</span>';
-        messageBox.style.opacity = '1';
-        console.error(err);
-      }
-    });
+    const canvasContainer=document.querySelector('.canvas-wrap');
+    function captureFromCamera(){ if(!cameraStream||!cameraPreviewReady) return; const t=document.createElement('canvas'); t.width=cameraPreview.videoWidth; t.height=cameraPreview.videoHeight; const c=t.getContext('2d'); c.drawImage(cameraPreview,0,0,t.width,t.height); const img=new Image(); img.onload=()=>{ currentImage=img; cameraCapturedOnce=true; stopCamera(); redrawCanvas(); }; img.src=t.toDataURL('image/png'); }
+    let lastTapTime=0;
+    canvasContainer.addEventListener('dblclick',()=>{ if(cameraStream) captureFromCamera(); else { offsetX=offsetY=0; syncZoom(1); redrawCanvas(); } });
+    canvasContainer.addEventListener('touchend',(e)=>{ if(e.touches.length>0) return; const now=Date.now(); if(now-lastTapTime<300){ if(cameraStream) captureFromCamera(); else { offsetX=offsetY=0; syncZoom(1); redrawCanvas(); } } lastTapTime=now; },{passive:true});
 
-    function stopCamera(){
-      if (cameraStream){
-        cameraStream.getTracks().forEach(t=>t.stop());
-        cameraStream = null; cameraPreviewReady = false;
-        cameraPreview.classList.add('hidden');
-      }
-    }
+    photoCanvas.addEventListener('mousedown',(e)=>{ if(!sourceLoaded()) return; isDragging=true; const r=photoCanvas.getBoundingClientRect(); startX=e.clientX-r.left; startY=e.clientY-r.top; });
+    window.addEventListener('mousemove',(e)=>{ if(!isDragging) return; const r=photoCanvas.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; offsetX+=(x-startX); offsetY+=(y-startY); startX=x; startY=y; redrawCanvas(); });
+    window.addEventListener('mouseup',()=>{ isDragging=false; });
 
-    // Ambil frame dari kamera ke gambar agar bisa di-zoom/geser
-    canvasContainer.addEventListener('dblclick', captureFromCameraIfAny);
-    canvasContainer.addEventListener('touchend', (e)=>{ if (e.touches.length===0) maybeDoubleTap(e); }, {passive:true});
+    photoCanvas.addEventListener('wheel',(e)=>{ if(!sourceLoaded()) return; e.preventDefault(); zoomAtPoint(Math.exp(-e.deltaY*0.001),e.clientX,e.clientY); },{passive:false});
+    function zoomAtPoint(factor,cx,cy){ const rect=photoCanvas.getBoundingClientRect(); const px=cx-rect.left-photoCanvas.width/2-offsetX; const py=cy-rect.top-photoCanvas.height/2-offsetY; const ns=clamp(scale*factor,1,3); const change=ns/scale; offsetX-=px*(change-1); offsetY-=py*(change-1); syncZoom(ns); redrawCanvas(); }
 
-    let lastTapTime = 0;
-    function maybeDoubleTap(e){
-      const now = Date.now();
-      if (now - lastTapTime < 300){ // double tap
-        if (cameraStream){ captureFromCameraIfAny(); return; }
-        // reset zoom
-        scale = 1; offsetX = 0; offsetY = 0; zoomSlider.value = 1; redrawCanvas();
-      }
-      lastTapTime = now;
-    }
+    photoCanvas.addEventListener('touchstart',(e)=>{ if(!sourceLoaded()) return; if(e.touches.length===2){ lastPinchDistance=dist(e.touches[0],e.touches[1]); isDragging=false; } else if(e.touches.length===1){ isDragging=true; const r=photoCanvas.getBoundingClientRect(); startX=e.touches[0].clientX-r.left; startY=e.touches[0].clientY-r.top; lastPinchDistance=null; } },{passive:false});
+    photoCanvas.addEventListener('touchmove',(e)=>{ if(!sourceLoaded()) return; e.preventDefault(); if(e.touches.length===2 && lastPinchDistance!==null){ const d=dist(e.touches[0],e.touches[1]); const factor=d/lastPinchDistance; const midX=(e.touches[0].clientX+e.touches[1].clientX)/2; const midY=(e.touches[0].clientY+e.touches[1].clientY)/2; zoomAtPoint(factor,midX,midY); lastPinchDistance=d; } else if(e.touches.length===1 && isDragging){ const r=photoCanvas.getBoundingClientRect(); const x=e.touches[0].clientX-r.left, y=e.touches[0].clientY-r.top; offsetX+=(x-startX); offsetY+=(y-startY); startX=x; startY=y; redrawCanvas(); } },{passive:false});
+    photoCanvas.addEventListener('touchend',()=>{ isDragging=false; lastPinchDistance=null; },{passive:true});
+    function dist(a,b){ return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY); }
 
-    function captureFromCameraIfAny(){
-      if (!cameraStream || !cameraPreviewReady) return;
-      const temp = document.createElement('canvas');
-      temp.width = cameraPreview.videoWidth;
-      temp.height = cameraPreview.videoHeight;
-      const tctx = temp.getContext('2d');
-      tctx.drawImage(cameraPreview, 0,0,temp.width,temp.height);
-      const img = new Image();
-      img.onload = ()=>{ currentImage = img; cameraCapturedOnce = true; stopCamera(); zoomControls.classList.remove('hidden'); redrawCanvas(); };
-      img.src = temp.toDataURL('image/png');
-    }
+    function syncZoom(val){ scale=parseFloat(val); if(zoomSliderDesktop) zoomSliderDesktop.value=scale; if(zoomSliderMobile) zoomSliderMobile.value=scale; }
+    if(zoomMinus) zoomMinus.addEventListener('click',()=>{ syncZoom(clamp(scale-0.05,1,3)); redrawCanvas(); });
+    if(zoomPlus) zoomPlus.addEventListener('click',()=>{ syncZoom(clamp(scale+0.05,1,3)); redrawCanvas(); });
+    if(zoomSliderDesktop) zoomSliderDesktop.addEventListener('input',(e)=>{ syncZoom(e.target.value); redrawCanvas(); });
+    if(zoomSliderMobile)  zoomSliderMobile.addEventListener('input',(e)=>{ syncZoom(e.target.value); redrawCanvas(); });
 
-    // ===================== Gesture & Input =====================
-    function getCanvasPoint(evt){
-      const rect = photoCanvas.getBoundingClientRect();
-      return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
-    }
+    function doDownload(){ if(!sourceLoaded()) return; const a=document.createElement('a'); a.download='foto-bingkai.png'; a.href=photoCanvas.toDataURL('image/png'); a.click(); }
+    ;[downloadBtn,downloadBtn_m,downloadBtn_big].forEach(b=> b && b.addEventListener('click',doDownload));
 
-    // Mouse drag
-    photoCanvas.addEventListener('mousedown', (e)=>{
-      if (!sourceLoaded()) return;
-      isDragging = true; photoCanvas.classList.add('dragging');
-      const {x,y} = getCanvasPoint(e); startX = x; startY = y;
-    });
-    window.addEventListener('mousemove', (e)=>{
-      if (!isDragging) return;
-      const {x,y} = getCanvasPoint(e);
-      offsetX += (x - startX); offsetY += (y - startY);
-      startX = x; startY = y; redrawCanvas();
-    });
-    window.addEventListener('mouseup', ()=>{ isDragging=false; photoCanvas.classList.remove('dragging'); });
-
-    // Wheel zoom (trackpad/mouse)
-    photoCanvas.addEventListener('wheel', (e)=>{
-      if (!sourceLoaded()) return;
-      e.preventDefault();
-      const delta = -e.deltaY; // ke atas = zoom in
-      const zoomFactor = Math.exp(delta * 0.001);
-      zoomAtPoint(zoomFactor, e.clientX, e.clientY);
-    }, {passive:false});
-
-    function zoomAtPoint(factor, clientX, clientY){
-      const rect = photoCanvas.getBoundingClientRect();
-      const cx = clientX - rect.left - photoCanvas.width/2 - offsetX;
-      const cy = clientY - rect.top - photoCanvas.height/2 - offsetY;
-      const newScale = clamp(scale * factor, 1, 3);
-      const change = newScale / scale;
-      // geser agar titik fokus relatif tetap
-      offsetX -= cx * (change - 1);
-      offsetY -= cy * (change - 1);
-      scale = newScale; zoomSlider.value = scale.toFixed(2);
-      redrawCanvas();
-    }
-
-    // Touch: satu jari drag, dua jari pinch-zoom
-    photoCanvas.addEventListener('touchstart', (e)=>{
-      if (!sourceLoaded()) return;
-      if (e.touches.length === 2){
-        lastPinchDistance = dist(e.touches[0], e.touches[1]);
-        isDragging = false;
-      } else if (e.touches.length === 1){
-        isDragging = true; photoCanvas.classList.add('dragging');
-        const rect = photoCanvas.getBoundingClientRect();
-        startX = e.touches[0].clientX - rect.left;
-        startY = e.touches[0].clientY - rect.top;
-        lastPinchDistance = null;
-      }
-    }, {passive:false});
-
-    photoCanvas.addEventListener('touchmove', (e)=>{
-      if (!sourceLoaded()) return;
-      e.preventDefault();
-      if (e.touches.length === 2 && lastPinchDistance !== null){
-        const d = dist(e.touches[0], e.touches[1]);
-        const factor = d / lastPinchDistance;
-        // zoom ke tengah kedua jari
-        const midX = (e.touches[0].clientX + e.touches[1].clientX)/2;
-        const midY = (e.touches[0].clientY + e.touches[1].clientY)/2;
-        zoomAtPoint(factor, midX, midY);
-        lastPinchDistance = d;
-      } else if (e.touches.length === 1 && isDragging){
-        const rect = photoCanvas.getBoundingClientRect();
-        const x = e.touches[0].clientX - rect.left;
-        const y = e.touches[0].clientY - rect.top;
-        offsetX += (x - startX); offsetY += (y - startY);
-        startX = x; startY = y; redrawCanvas();
-      }
-    }, {passive:false});
-
-    photoCanvas.addEventListener('touchend', ()=>{
-      isDragging = false; photoCanvas.classList.remove('dragging'); lastPinchDistance = null;
-    }, {passive:true});
-
-    function dist(a,b){ const dx=a.clientX-b.clientX, dy=a.clientY-b.clientY; return Math.hypot(dx,dy); }
-
-    // Slider zoom manual
-    zoomSlider.addEventListener('input', (e)=>{ scale = parseFloat(e.target.value); redrawCanvas(); });
-
-    // ===================== Frame UI =====================
-    const frameGrid = document.getElementById('frameGrid');
-    function renderFrameButtons(){
-      frameGrid.innerHTML = '';
-      FRAMES.forEach(f=>{
-        const btn = document.createElement('button');
-        btn.className = 'border rounded-xl p-2 hover:shadow focus:ring outline-none flex flex-col items-center';
-        btn.title = f.name;
-        btn.innerHTML = `<span class="text-sm mb-1">${f.name}</span><span class="text-xs text-gray-500">Pilih</span>`;
-        btn.onclick = ()=>{ activeFrameKey = f.key; redrawCanvas(); };
-        frameGrid.appendChild(btn);
-      });
-    }
-    renderFrameButtons();
-
-    clearFrameBtn.addEventListener('click', ()=>{ activeFrameKey = null; redrawCanvas(); });
-    titleText.addEventListener('input', redrawCanvas);
-    dateText.addEventListener('input', redrawCanvas);
-
-    // ===================== Unduh =====================
-    downloadBtn.addEventListener('click', ()=>{
-      if (!sourceLoaded()) return;
-      const a = document.createElement('a');
-      a.download = 'foto-bingkai.png';
-      a.href = photoCanvas.toDataURL('image/png');
-      a.click();
-    });
-
-    // ===================== Lifecycle =====================
-    window.addEventListener('resize', ()=>{ /* layout via CSS, pixel size tetap */ });
-
-    // Mulai
-    function init(){ changeSize('portrait'); messageBox.style.opacity='1'; zoomControls.classList.add('hidden'); }
+    function init(){ changeSize('portrait'); }
     init();
   </script>
 </body>
